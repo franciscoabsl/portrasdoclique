@@ -1,0 +1,21 @@
+package com.portrasdoclique.api.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EtapaDTO {
+    private int numero;
+    private String nome;
+    private String resumo;
+    private long tempoMs;
+    private String status;
+    private Map<String, Object> detalhes;
+}
