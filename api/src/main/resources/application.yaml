@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: portrasdoclique-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/portrasdoclique
+    username: ptdc_user
+    password: ptdc_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ptdc_user
+    password: ptdc_pass
+
+server:
+  port: 8080
+
+tmdb:
+  api:
+    key: ${TMDB_API_KEY}
+  base-url: https://api.themoviedb.org/3
+
+omdb:
+  api:
+    key: ${OMDB_API_KEY}
+  base-url: https://www.omdbapi.com
+
+logging:
+  level:
+    com.portrasdoclique: DEBUG
+    org.springframework.web: INFO
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      tmdb:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
