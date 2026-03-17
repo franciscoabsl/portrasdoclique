@@ -18,3 +18,4 @@ web/dist/
 
 # Logs
 *.log
+api/src/main/resources/application-local.yaml
