@@ -19,15 +19,18 @@ export function Hero({ onIniciar, chaosMode, onChaosChange }) {
       </h1>
 
       <p className="mt-5 text-sm leading-relaxed text-gray-500">
-        Você está prestes a fazer algo simples: clicar em um botão. Mas esse
-        clique vai disparar uma cadeia de eventos que a maioria das pessoas
-        nunca vê. Uma requisição atravessa a internet, é autenticada, aciona um
-        banco de dados, consulta uma API externa e volta para você com uma
-        resposta — tudo em menos tempo do que leva para piscar os olhos.
+        Você está prestes a fazer algo simples: clicar em um botão. Mas, por
+        trás de cada ação que você faz na web, existe um mundo em movimento que
+        a maioria das pessoas nunca vê. Servidores acordando, caches sendo
+        consultados, filas processando eventos, circuit breakers protegendo o
+        sistema — tudo orquestrado em frações de segundo antes da resposta
+        chegar até você. Clique no botão abaixo e acompanhe essa jornada em
+        tempo real. Sem abstração. Sem simulação. O sistema real, exposto.
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-gray-500">
-        Isso é o back-end. E você está prestes a vê-lo funcionar ao vivo.
+        Isso é o back-end. E você está prestes a vê-lo funcionar ao vivo. Uma
+        janela aberta para o back-end — transparente, interativa e ao vivo.
       </p>
 
       <div className="mt-8 flex items-center gap-4 flex-wrap">
