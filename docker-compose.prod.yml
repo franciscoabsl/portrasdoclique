@@ -1,0 +1,88 @@
+services:
+  api:
+    build: ./api
+    container_name: ptdc_api
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/portrasdoclique
+      - SPRING_DATASOURCE_USERNAME=ptdc_user
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_USERNAME=ptdc_user
+      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - OMDB_API_KEY=${OMDB_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ptdc-network
+      - proxy-network
+
+  web:
+    build: ./web
+    container_name: ptdc_web
+    restart: always
+    networks:
+      - ptdc-network
+      - proxy-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ptdc_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: portrasdoclique
+      POSTGRES_USER: ptdc_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ptdc_user -d portrasdoclique']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ptdc-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ptdc_redis
+    restart: always
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ptdc-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ptdc_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ptdc_user
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ptdc-network
+
+networks:
+  ptdc-network:
+    driver: bridge
+  proxy-network:
+    external: true
+
+volumes:
+  postgres_data:

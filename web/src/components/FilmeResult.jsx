@@ -13,7 +13,7 @@ export function FilmeResult({ filme, onReset }) {
     >
       <div className="flex gap-4 p-4">
         <div
-          className="w-18 h-28 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"
+          className="w-18 h-28 rounded-lg overflow-hidden bg-gray-100 shrink-0"
           style={{ width: '72px', height: '108px' }}
         >
           {filme.posterUrl && (

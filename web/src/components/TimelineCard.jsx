@@ -13,9 +13,7 @@ export function TimelineCard({ etapa, isLast }) {
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center">
-        <div
-          className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${config.dot}`}
-        />
+        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${config.dot}`} />
         {!isLast && <div className="w-px flex-1 bg-gray-100 mt-1" />}
       </div>
 

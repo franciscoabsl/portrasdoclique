@@ -1,5 +1,6 @@
 package com.portrasdoclique.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portrasdoclique.api.config.RabbitConfig;
 import com.portrasdoclique.api.dto.EtapaDTO;
 import com.portrasdoclique.api.dto.FilmeDTO;
@@ -31,7 +32,9 @@ public class FluxoService {
     private final OmdbService omdbService;
     private final RequestLogRepository logRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final TmdbCircuitBreakerService tmdbCircuitBreakerService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     public void executar(SseEmitter emitter, String ip, boolean chaosMode) {
         try {
@@ -65,9 +68,23 @@ public class FluxoService {
                         System.currentTimeMillis() - inicio,
                         Map.of("status", 200, "source", "REDIS CACHE", "total_ms", System.currentTimeMillis() - inicio));
 
-                FilmeDTO filme = (FilmeDTO) cached;
+                FilmeDTO filme = objectMapper.convertValue(cached, FilmeDTO.class);
                 filme.setTempoTotalMs(System.currentTimeMillis() - inicio);
                 filme.setFonte("REDIS CACHE");
+
+                // Publica evento mesmo no cache hit
+                FilmeBuscadoEvent eventCache = FilmeBuscadoEvent.builder()
+                        .filmeTitulo(filme.getTitulo())
+                        .filmeId(filme.getId())
+                        .ip(ip)
+                        .tempoMs((int) (System.currentTimeMillis() - inicio))
+                        .cacheHit(true)
+                        .fallbackUsed(false)
+                        .tmdbOk(true)
+                        .timestamp(LocalDateTime.now())
+                        .build();
+                rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY_BUSCADO, eventCache);
+
                 emitirResultado(emitter, filme);
                 emitter.complete();
                 return;
@@ -78,7 +95,7 @@ public class FluxoService {
                     Map.of("key", CACHE_KEY, "result", "MISS", "ttl", "null"));
 
             // Etapa 5 — TMDB com circuit breaker
-            FilmeDTO filme = buscarComCircuitBreaker(emitter, inicio, chaosMode);
+            FilmeDTO filme = tmdbCircuitBreakerService.buscar(emitter, inicio, chaosMode);
 
             // Etapa 6 — OMDb
             OmdbService.OmdbData omdb = omdbService.buscarDetalhes(filme.getTitulo());
@@ -159,49 +176,6 @@ public class FluxoService {
             log.error("Erro no fluxo SSE", e);
             emitter.completeWithError(e);
         }
-    }
-
-    @CircuitBreaker(name = "tmdb", fallbackMethod = "tmdbFallback")
-    private FilmeDTO buscarComCircuitBreaker(SseEmitter emitter, long inicio, boolean chaosMode) throws Exception {
-        if (chaosMode) throw new RuntimeException("Modo caos ativado");
-
-        FilmeDTO filme = tmdbService.buscarFilmeAleatorio();
-        long tempoMs = System.currentTimeMillis() - inicio;
-
-        emitir(emitter, 5, "TMDB API consultada", "GET /movie/popular · filme selecionado", "ok",
-                tempoMs,
-                Map.of(
-                        "url", "api.themoviedb.org/3/movie/popular",
-                        "filme", filme.getTitulo(),
-                        "nota", filme.getNota()
-                ));
-
-        filme.setFonte("TMDB");
-        return filme;
-    }
-
-    private FilmeDTO tmdbFallback(SseEmitter emitter, long inicio, boolean chaosMode, Exception e) throws Exception {
-        long tempoMs = System.currentTimeMillis() - inicio;
-
-        emitir(emitter, 5, "TMDB indisponível", "Circuit Breaker aberto · acionando fallback", "error",
-                tempoMs,
-                Map.of("error", e.getMessage(), "state", "OPEN", "fallback", "omdb"));
-
-        emitir(emitter, 5, "Fallback ativado", "Buscando via OMDb...", "ok",
-                System.currentTimeMillis() - inicio,
-                Map.of("source", "fallback", "reason", "tmdb_unavailable"));
-
-        return FilmeDTO.builder()
-                .id(0)
-                .titulo("Duna: Parte Dois")
-                .tituloOriginal("Dune: Part Two")
-                .sinopse("Paul Atreides se une aos Fremen enquanto busca vingança contra os conspiradores que destruíram sua família.")
-                .posterPath("/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg")
-                .posterUrl("https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg")
-                .nota(8.4)
-                .dataLancamento("2024-02-27")
-                .fonte("OMDB FALLBACK")
-                .build();
     }
 
     private void emitir(SseEmitter emitter, int numero, String nome, String resumo,

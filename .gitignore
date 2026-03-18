@@ -15,7 +15,9 @@ web/dist/
 # Env
 .env
 *.env.local
+.env.prod
 
 # Logs
 *.log
 api/src/main/resources/application-local.yaml
+

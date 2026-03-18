@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -69,13 +68,13 @@ public class MetricasService {
         Long tempoTotal = toLong(redisTemplate.opsForValue().get(KEY_TEMPO_TOTAL));
         Long tempoCount = toLong(redisTemplate.opsForValue().get(KEY_TEMPO_COUNT));
 
-        double cacheHitRate = total != null && total > 0
-                ? (cacheHits != null ? cacheHits * 100.0 / total : 0)
-                : 0;
+        double cacheHitRate = (total != null && total > 0 && cacheHits != null)
+                ? (cacheHits * 100.0 / total)
+                : 0.0;
 
-        double tempoMedio = tempoCount != null && tempoCount > 0
-                ? (tempoTotal != null ? tempoTotal * 1.0 / tempoCount : 0)
-                : 0;
+        double tempoMedio = (tempoCount != null && tempoCount > 0 && tempoTotal != null)
+                ? (tempoTotal * 1.0 / tempoCount)
+                : 0.0;
 
         List<MetricasDTO.TopFilmeDTO> topFilmes = new ArrayList<>();
         Set<Object> top = redisTemplate.opsForZSet().reverseRange(KEY_TOP_FILMES, 0, 4);
