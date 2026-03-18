@@ -19,6 +19,6 @@ jobs:
           script: |
             cd /home/franciscolima/apps/sites/portrasdoclique
             git pull origin main
-            docker compose -f docker-compose.prod.yml build
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml --env-file .env.prod build
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
             docker compose -f /home/franciscolima/apps/infra/docker-compose.yml restart nginx
