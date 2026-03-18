@@ -18,21 +18,27 @@ public class SseService {
         SseEmitter emitter = new SseEmitter(300_000L);
 
         clientes.add(emitter);
-        log.debug("Novo cliente SSE conectado. Total: {}", clientes.size());
+        log.info("Novo cliente SSE conectado. Total: {}", clientes.size());
+
+        try {
+            emitter.send(SseEmitter.event().name("connected").data("ok"));
+        } catch (Exception e) {
+            clientes.remove(emitter);
+        }
 
         emitter.onCompletion(() -> {
             clientes.remove(emitter);
-            log.debug("Cliente SSE desconectado. Total: {}", clientes.size());
+            log.info("Cliente SSE desconectado. Total: {}", clientes.size());
         });
 
         emitter.onTimeout(() -> {
             clientes.remove(emitter);
-            log.debug("Cliente SSE timeout. Total: {}", clientes.size());
+            log.info("Cliente SSE timeout. Total: {}", clientes.size());
         });
 
         emitter.onError(e -> {
             clientes.remove(emitter);
-            log.debug("Erro no cliente SSE. Total: {}", clientes.size());
+            log.info("Erro no cliente SSE. Total: {}", clientes.size());
         });
 
         return emitter;

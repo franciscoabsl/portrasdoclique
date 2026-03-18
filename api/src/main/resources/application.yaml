@@ -32,6 +32,10 @@ spring:
     username: ptdc_user
     password: ptdc_pass
 
+  mvc:
+    async:
+      request-timeout: 300000
+
 server:
   port: 8080
 
