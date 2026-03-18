@@ -21,3 +21,4 @@ web/dist/
 *.log
 api/src/main/resources/application-local.yaml
 
+web/.env.local
