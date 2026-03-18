@@ -38,7 +38,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "https://portrasdoclique.com.br",
-                "https://www.portrasdoclique.com.br"
+                "https://www.portrasdoclique.com.br",
+                "https://portrasdoclique.franciscosouzalima.dev"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
