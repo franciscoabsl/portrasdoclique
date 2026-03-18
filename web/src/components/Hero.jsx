@@ -29,8 +29,7 @@ export function Hero({ onIniciar, chaosMode, onChaosChange }) {
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-gray-500">
-        Isso é o back-end. E você está prestes a vê-lo funcionar ao vivo. Uma
-        janela aberta para o back-end — transparente, interativa e ao vivo.
+        Isso é o back-end. E você está prestes a vê-lo funcionar ao vivo.
       </p>
 
       <div className="mt-8 flex items-center gap-4 flex-wrap">
