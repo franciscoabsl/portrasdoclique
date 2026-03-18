@@ -12,6 +12,10 @@ export function useMetricas() {
       setMetricas(JSON.parse(e.data));
     });
 
+    source.addEventListener('connected', () => {
+      console.log('SSE métricas conectado');
+    });
+
     source.onerror = () => {
       source.close();
     };
