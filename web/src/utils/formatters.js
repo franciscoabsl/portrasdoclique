@@ -11,13 +11,17 @@ export function formatTtl(seconds) {
 }
 
 export function formatTimestamp(iso) {
+  if (!iso) return '';
+
   const date = new Date(iso);
   const agora = new Date();
   const diff = Math.floor((agora - date) / 1000);
 
+  if (diff < 0) return 'agora';
   if (diff < 60) return `há ${diff}s`;
   if (diff < 3600) return `há ${Math.floor(diff / 60)}min`;
-  return `há ${Math.floor(diff / 3600)}h`;
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
+  return `há ${Math.floor(diff / 86400)}d`;
 }
 
 export function formatCacheHitRate(rate) {

@@ -51,7 +51,7 @@ public class MetricasService {
                     .tempoMs(event.getTempoMs())
                     .cacheHit(event.getCacheHit())
                     .fallbackUsed(event.getFallbackUsed())
-                    .timestamp(event.getTimestamp().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                    .timestamp(event.getTimestamp().atZone(java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT))
                     .build();
 
             String json = objectMapper.writeValueAsString(recente);
