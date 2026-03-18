@@ -17,7 +17,7 @@ export function formatTimestamp(iso) {
   const agora = new Date();
   const diff = Math.floor((agora - date) / 1000);
 
-  if (diff < 0) return 'agora';
+  if (diff < 5) return 'agora';
   if (diff < 60) return `há ${diff}s`;
   if (diff < 3600) return `há ${Math.floor(diff / 60)}min`;
   if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
