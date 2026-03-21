@@ -38,6 +38,7 @@ public class TmdbService {
             JsonNode filme = results.get(index);
 
             String posterPath = filme.get("poster_path").asText();
+            String backdropPath = filme.get("backdrop_path").asText("");
 
             return FilmeDTO.builder()
                     .id(filme.get("id").asInt())
@@ -46,8 +47,15 @@ public class TmdbService {
                     .sinopse(filme.get("overview").asText())
                     .posterPath(posterPath)
                     .posterUrl("https://image.tmdb.org/t/p/w500" + posterPath)
+                    .backdropPath(backdropPath)
+                    .backdropUrl(backdropPath.isEmpty() ? "" : "https://image.tmdb.org/t/p/w1280" + backdropPath)
                     .nota(filme.get("vote_average").asDouble())
+                    .votos(filme.get("vote_count").asInt())
+                    .idioma(filme.get("original_language").asText())
+                    .popularidade(filme.get("popularity").asDouble())
                     .dataLancamento(filme.get("release_date").asText())
+                    .dataAtualizacao(java.time.LocalDateTime.now().toString())
+                    .emAlta(filme.get("vote_average").asDouble() >= 8.0)
                     .build();
 
         } catch (Exception e) {

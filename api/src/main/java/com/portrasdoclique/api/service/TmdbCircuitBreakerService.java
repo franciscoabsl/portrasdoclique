@@ -24,19 +24,32 @@ public class TmdbCircuitBreakerService {
         FilmeDTO filme = tmdbService.buscarFilmeAleatorio();
         long tempoMs = System.currentTimeMillis() - inicio;
 
+        Map<String, Object> detalhes = new java.util.LinkedHashMap<>();
+        detalhes.put("url", "api.themoviedb.org/3/movie/popular");
+        detalhes.put("filme_id", filme.getId());
+        detalhes.put("filme_titulo", filme.getTitulo());
+        detalhes.put("filme_titulo_original", filme.getTituloOriginal());
+        detalhes.put("nota", filme.getNota());
+        detalhes.put("votos", filme.getVotos());
+        detalhes.put("popularidade", filme.getPopularidade());
+        detalhes.put("idioma", filme.getIdioma());
+        detalhes.put("data_lancamento", filme.getDataLancamento());
+        detalhes.put("em_alta", filme.getEmAlta());
+        detalhes.put("poster_url", filme.getPosterUrl());
+        detalhes.put("backdrop_url", filme.getBackdropUrl());
+        detalhes.put("sinopse", filme.getSinopse());
+        detalhes.put("http_status", 200);
+        detalhes.put("response_time_ms", tempoMs);
+
         emitir(emitter, 5, "TMDB API consultada", "GET /movie/popular · filme selecionado", "ok",
-                tempoMs,
-                Map.of(
-                        "url", "api.themoviedb.org/3/movie/popular",
-                        "filme", filme.getTitulo(),
-                        "nota", filme.getNota()
-                ));
+                tempoMs, detalhes);
 
         filme.setFonte("TMDB");
+        filme.setStatusFonte("200 OK");
         return filme;
     }
 
-    public FilmeDTO tmdbFallback(SseEmitter emitter, long inicio, boolean chaosMode, Exception e) throws Exception {
+    public FilmeDTO tmdbFallback(SseEmitter emitter, long inicio, Exception e) throws Exception {
         long tempoMs = System.currentTimeMillis() - inicio;
 
         emitir(emitter, 5, "TMDB indisponível", "Circuit Breaker aberto · acionando fallback", "error",
@@ -57,6 +70,7 @@ public class TmdbCircuitBreakerService {
                 .nota(8.4)
                 .dataLancamento("2024-02-27")
                 .fonte("OMDB FALLBACK")
+                .statusFonte("FALLBACK")
                 .build();
     }
 

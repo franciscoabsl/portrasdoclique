@@ -39,6 +39,7 @@ public class FluxoService {
         try {
             long inicio = System.currentTimeMillis();
             String timestamp = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_TIME);
+            String requestId = java.util.UUID.randomUUID().toString();
 
             // Etapa 1 — Requisição recebida
             emitir(emitter, 1, "Requisição recebida", "GET /api/fluxo/iniciar", "ok",
@@ -50,7 +51,8 @@ public class FluxoService {
                             "timestamp", timestamp,
                             "protocol", "HTTP/1.1",
                             "content_type", "application/json",
-                            "user_agent", "portrasdoclique-client/1.0"
+                            "user_agent", "portrasdoclique-client/1.0",
+                            "request_id", requestId
                     ));
 
             // Etapa 2 — JWT gerado
@@ -117,6 +119,10 @@ public class FluxoService {
                 FilmeDTO filme = objectMapper.convertValue(cached, FilmeDTO.class);
                 filme.setTempoTotalMs(System.currentTimeMillis() - inicio);
                 filme.setFonte("REDIS CACHE");
+                filme.setCacheHit(true);
+                filme.setRequestId(requestId);
+                filme.setIpOrigem(ip);
+                filme.setTimestamp(timestamp);
 
                 // Publica evento mesmo no cache hit
                 FilmeBuscadoEvent eventCache = FilmeBuscadoEvent.builder()
@@ -165,8 +171,10 @@ public class FluxoService {
                     System.currentTimeMillis() - inicio,
                     Map.of(
                             "titulo", filme.getTitulo(),
+                            "filme_id", filme.getId(),
                             "rotten_tomatoes", omdb.rottenTomatoes() != null ? omdb.rottenTomatoes() : "N/A",
                             "metacritic", omdb.metacritic() != null ? omdb.metacritic() : "N/A",
+                            "premios", omdb.premios() != null ? omdb.premios() : "N/A",
                             "omdb_response_time_ms", omdbTime,
                             "ratings_found", (hasRottenTomatoes ? 1 : 0) + (hasMetacritic ? 1 : 0),
                             "data_validation", "ok",
@@ -178,22 +186,26 @@ public class FluxoService {
             filme.setPremios(omdb.premios());
 
             // Etapa 7 — Dados agregados
-            int totalFields = 14; // total de campos agregados
-            int fieldsFromTmdb = 8;
+            int totalFields = 25; // total de campos agregados agora
+            int fieldsFromTmdb = 14;
             int fieldsFromOmdb = 3;
+
+            Map<String, Object> detalhesEtapa7 = new java.util.LinkedHashMap<>();
+            detalhesEtapa7.put("tmdb", "ok");
+            detalhesEtapa7.put("omdb", "ok");
+            detalhesEtapa7.put("fontes", 2);
+            detalhesEtapa7.put("total_fields", totalFields);
+            detalhesEtapa7.put("fields_tmdb", fieldsFromTmdb);
+            detalhesEtapa7.put("fields_omdb", fieldsFromOmdb);
+            detalhesEtapa7.put("filme_titulo", filme.getTitulo());
+            detalhesEtapa7.put("filme_nota", filme.getNota());
+            detalhesEtapa7.put("filme_votos", filme.getVotos());
+            detalhesEtapa7.put("data_integrity_check", "passed");
+            detalhesEtapa7.put("aggregation_time_ms", tmdbTime + omdbTime);
 
             emitir(emitter, 7, "Dados agregados", "2 fontes combinadas", "ok",
                     System.currentTimeMillis() - inicio,
-                    Map.of(
-                            "tmdb", "ok",
-                            "omdb", "ok",
-                            "fontes", 2,
-                            "total_fields", totalFields,
-                            "fields_tmdb", fieldsFromTmdb,
-                            "fields_omdb", fieldsFromOmdb,
-                            "data_integrity_check", "passed",
-                            "aggregation_time_ms", tmdbTime + omdbTime
-                    ));
+                    detalhesEtapa7);
 
             // Etapa 8 — Salvar no banco
             long dbStart = System.currentTimeMillis();
@@ -214,6 +226,7 @@ public class FluxoService {
                     Map.of(
                             "id", requestLog.getId(),
                             "filme", filme.getTitulo(),
+                            "filme_id", filme.getId(),
                             "cache_hit", false,
                             "database", "postgresql",
                             "table", "request_logs",
@@ -244,6 +257,7 @@ public class FluxoService {
                             "exchange", RabbitConfig.EXCHANGE,
                             "routing_key", RabbitConfig.ROUTING_KEY_BUSCADO,
                             "filme", filme.getTitulo(),
+                            "filme_id", filme.getId(),
                             "message_delivery_time_ms", mqTime,
                             "queue_depth", 3,
                             "delivery_guarantee", "at-least-once",
@@ -276,6 +290,8 @@ public class FluxoService {
                     Map.of(
                             "status", 200,
                             "total_ms", tempoTotal,
+                            "filme_titulo", filme.getTitulo(),
+                            "filme_id", filme.getId(),
                             "fonte", filme.getFonte(),
                             "payload_size_bytes", responsePayload.length,
                             "compression_enabled", true,
@@ -284,8 +300,17 @@ public class FluxoService {
                             "service_version", "1.0.0"
                     ));
 
+            // Adicionar dados de rastreamento e contexto ao filme
             filme.setTempoTotalMs(tempoTotal);
             filme.setFonte(chaosMode ? "OMDB FALLBACK" : "TMDB");
+            filme.setStatusFonte(!chaosMode ? "200 OK" : "FALLBACK");
+            filme.setRequestId(requestId);
+            filme.setIpOrigem(ip);
+            filme.setTimestamp(timestamp);
+            filme.setCacheHit(false);
+            filme.setTentativasRequisicao(chaosMode ? 2 : 1);
+            filme.setFallbackUtilizado(chaosMode ? "OMDB" : "NENHUM");
+
             emitirResultado(emitter, filme);
             emitter.complete();
 
