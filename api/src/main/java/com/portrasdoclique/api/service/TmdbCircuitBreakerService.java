@@ -49,7 +49,7 @@ public class TmdbCircuitBreakerService {
         return filme;
     }
 
-    public FilmeDTO tmdbFallback(SseEmitter emitter, long inicio, Exception e) throws Exception {
+    public FilmeDTO tmdbFallback(SseEmitter emitter, long inicio, boolean chaosMode, Exception e) throws Exception {
         long tempoMs = System.currentTimeMillis() - inicio;
 
         emitir(emitter, 5, "TMDB indisponível", "Circuit Breaker aberto · acionando fallback", "error",
