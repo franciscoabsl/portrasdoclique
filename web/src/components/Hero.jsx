@@ -19,17 +19,20 @@ export function Hero({ onIniciar, chaosMode, onChaosChange }) {
       </h1>
 
       <p className="mt-5 text-sm leading-relaxed text-gray-500">
-        Você está prestes a fazer algo simples: clicar em um botão. Mas, por
-        trás de cada ação que você faz na web, existe um mundo em movimento que
-        a maioria das pessoas nunca vê. Servidores acordando, caches sendo
-        consultados, filas processando eventos, circuit breakers protegendo o
-        sistema — tudo orquestrado em frações de segundo antes da resposta
+        Você está prestes a fazer algo simples: clicar em um botão para
+        descobrir um filme aleatório. Mas, por trás de cada ação que você faz na
+        web, existe um mundo em movimento que a maioria das pessoas nunca vê.
+        Servidores acordando, caches sendo consultados, filas processando
+        eventos, bancos de dados consultados, circuit breakers protegendo o
+        sistema — tudo orquestrado em frações de segundo antes da recomendação
         chegar até você. Clique no botão abaixo e acompanhe essa jornada em
-        tempo real. Sem abstração. Sem simulação. O sistema real, exposto.
+        tempo real, do pedido até a sugestão final.
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-gray-500">
-        Isso é o back-end. E você está prestes a vê-lo funcionar ao vivo.
+        A jornada pode tomar rumos completamente diferentes dependendo do estado
+        do sistema. Isso é o back-end. E você está prestes a vê-lo funcionar ao
+        vivo.
       </p>
 
       <div className="mt-8 flex items-center gap-4 flex-wrap">
@@ -38,7 +41,7 @@ export function Hero({ onIniciar, chaosMode, onChaosChange }) {
           className="bg-gray-900 text-white text-sm px-5 py-2.5 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer border-0"
           style={{ fontFamily: "'Geist', sans-serif" }}
         >
-          Fazer o clique
+          Descobrir um filme
         </button>
         <ChaosToggle enabled={chaosMode} onChange={onChaosChange} />
       </div>
